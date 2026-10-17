@@ -837,7 +837,7 @@
       .hero-services { display:flex; flex-direction:row; flex-wrap:wrap; gap:6px 17px; font-size:9px; max-width:72%; }
       .hero-aside-rule { display:none; }
       .hero-aside-statement { flex-shrink:0; font-size:12px; line-height:1.45; letter-spacing:.13em; }
-      .hero-aside-statement br { display:revert; }
+      .hero-aside-statement br { display:none; }
     }
     @media (max-width:680px) {
       .hero { padding-top:20px; }
@@ -866,6 +866,42 @@
       .hero-actions .btn { font-size:11px; padding:11px 14px; }
       .hero-aside { padding:17px 18px; }
     }
+
+
+/* Optional, user-initiated 3D hero: default editorial photo remains the first experience. */
+.hero-stage { isolation:isolate; }
+.hero-poster-image { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.hero-stage.is-3d { background:radial-gradient(ellipse at 40% 22%, #fffdfa 0%,#f4f0e8 64%,#e3d8c8 100%); }
+.hero-stage.is-3d .hero-poster-image { opacity:0; pointer-events:none; }
+.hero-model { position:absolute; inset:0; display:block; width:100%; height:100%; outline:none; background:transparent; opacity:0; pointer-events:none; transition:opacity .32s ease; }
+.hero-stage.is-3d .hero-model { opacity:1; pointer-events:auto; }
+.hero-3d-button {
+  z-index:5; position:absolute; bottom:24px; right:24px;
+  display:flex; align-items:center; gap:24px;
+  min-height:46px; padding:12px 17px;
+  border:1px solid rgba(25,25,25,.16); border-radius:10px;
+  color:#191919; background:#f4f0e8;
+  box-shadow:0 10px 32px rgba(25,25,25,.18);
+  font:600 12px/1.2 var(--font); letter-spacing:.01em;
+  transition:background .2s ease, transform .2s ease;
+}
+.hero-3d-button:hover { background:#fffdfa; transform:translateY(-2px); }
+.hero-3d-button:focus-visible { outline:3px solid #a8472d; outline-offset:3px; }
+.hero-3d-button:disabled { cursor:progress; opacity:.9; }
+.hero-3d-button span { font-size:16px; line-height:1; }
+.hero-3d-status {
+  position:absolute; left:20px; bottom:28px; z-index:5;
+  max-width:54%; padding:8px 10px; border-radius:7px;
+  background:rgba(244,240,232,.92); color:#191919;
+  font:500 11px/1.35 var(--font);
+}
+.hero-3d-status[hidden] { display:none; }
+@media(max-width:680px) {
+  .hero-3d-button { right:14px; bottom:14px; min-height:42px; padding:10px 12px; gap:12px; font-size:11px; }
+  .hero-3d-status { left:14px; bottom:66px; max-width:calc(100% - 28px); }
+}
+@media(prefers-reduced-motion:reduce) { .hero-model,.hero-3d-button { transition:none; } }
+
 </style>
   <noscript><style>.theme-toggle,.menu-toggle,.filters,.motion-toggle{display:none!important}.nav-links{display:flex!important;position:static!important;flex-direction:row!important;flex-wrap:wrap!important;padding:0!important;box-shadow:none!important}.nav{flex-wrap:wrap;padding-block:14px}.project-button{cursor:default}.sculpture,.float-card{animation:none!important}
 
@@ -1101,8 +1137,10 @@
             <a class="btn" href="#work">View selected work <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12"/></svg></a>
           </div>
         </div>
-        <div class="hero-stage" role="img" aria-label="Black sculptural made by Kirat symbol on a warm stone plinth in soft natural light">
-          <img src="assets/hero-sculpture.jpg" alt="" fetchpriority="high" decoding="async">
+        <div class="hero-stage">
+          <img class="hero-poster-image" src="assets/hero-sculpture.jpg" alt="Sculptural black made by Kirat symbol on a warm stone plinth" fetchpriority="high" decoding="async">
+          <div class="hero-3d-status" id="hero-3d-status" aria-live="polite" hidden></div>
+          <button class="hero-3d-button" id="hero-3d-button" type="button" aria-label="Explore the made by Kirat logo as an interactive 3D model">Explore in 3D <span aria-hidden="true">↗</span></button>
         </div>
         <aside class="hero-aside" aria-label="Studio disciplines">
           <ul class="hero-services">
@@ -1410,5 +1448,91 @@ const response = await fetch('https://contact-api.kiratjotsingh094.workers.dev/a
   });
 })();
 </script>
+
+<script>
+/* Optional 3D interaction: no 27 MB model request until visitors opt in. */
+(() => {
+  const button = document.getElementById('hero-3d-button');
+  const stage = document.querySelector('.hero-stage');
+  const status = document.getElementById('hero-3d-status');
+  if (!button || !stage || !status) return;
+  const lib = 'https://ajax.googleapis.com/ajax/libs/model-viewer/4.4.0/model-viewer.min.js';
+  let state = 'photo', viewer = null, libraryTask = null;
+  function notice(message) { status.hidden = !message; status.textContent = message || ''; }
+  function showPhoto() {
+    state = 'photo';
+    stage.classList.remove('is-3d');
+    button.disabled = false;
+    button.innerHTML = 'Explore in 3D <span aria-hidden="true">↗</span>';
+    button.setAttribute('aria-label','Explore the made by Kirat logo as an interactive 3D model');
+    notice('');
+    if (viewer) viewer.pause?.();
+  }
+  function getLibrary() {
+    if (customElements.get('model-viewer')) return Promise.resolve();
+    if (libraryTask) return libraryTask;
+    libraryTask = Promise.race([new Promise((resolve,reject) => {
+      const script = document.createElement('script');
+      script.type = 'module'; script.src = lib;
+      script.onerror = () => reject(new Error('3D viewer library could not load'));
+      script.onload = () => customElements.whenDefined('model-viewer').then(resolve,reject);
+      document.head.appendChild(script);
+    }), new Promise((_,reject) => setTimeout(() => reject(new Error('3D viewer took too long to load')),15000))]);
+    return libraryTask;
+  }
+  async function show3D() {
+    if (state === 'loading') return;
+    if (state === '3d') { showPhoto(); return; }
+    state = 'loading'; button.disabled = true; notice('Preparing interactive view…');
+    try {
+      await getLibrary();
+      if (!viewer) {
+        viewer = document.createElement('model-viewer');
+        viewer.className = 'hero-model';
+        viewer.setAttribute('alt','Interactive 3D version of the finalized made by Kirat symbol');
+        viewer.setAttribute('camera-controls','');
+        viewer.setAttribute('touch-action','pan-y');
+        viewer.setAttribute('camera-orbit','0deg 90deg 3.45m');
+        viewer.setAttribute('camera-target','0m 0m 0m');
+        viewer.setAttribute('field-of-view','30deg');
+        viewer.setAttribute('min-camera-orbit','-35deg 58deg auto');
+        viewer.setAttribute('max-camera-orbit','35deg 122deg auto');
+        viewer.setAttribute('disable-zoom','');
+        viewer.setAttribute('shadow-intensity','0.75');
+        viewer.setAttribute('exposure','1.25');
+        viewer.setAttribute('environment-image','neutral');
+        viewer.addEventListener('progress', event => {
+          if (state === 'loading') notice('Loading 3D model… '+Math.round((event.detail?.totalProgress || 0)*100)+'%');
+        });
+        viewer.addEventListener('error', () => {
+          showPhoto(); notice('3D could not load. The original hero image is still available.');
+        });
+        viewer.addEventListener('load', () => {
+          // The mesh remains exactly as supplied; only the displayed finish uses brand ink.
+          try { viewer.model?.materials?.forEach(m => m.pbrMetallicRoughness?.setBaseColorFactor([0.075,0.075,0.075,1])); }
+          catch (_) { /* use model's included material as fallback */ }
+          stage.classList.add('is-3d'); state = '3d'; button.disabled = false;
+          button.innerHTML = 'Back to photo <span aria-hidden="true">↶</span>';
+          button.setAttribute('aria-label','Return to the original sculptural hero photograph');
+          notice('Drag to inspect the actual 3D logo.');
+          setTimeout(() => { if (state === '3d') notice(''); },4500);
+        });
+        stage.appendChild(viewer);
+      }
+      if (viewer.loaded) {
+        stage.classList.add('is-3d'); state = '3d'; button.disabled = false;
+        button.innerHTML = 'Back to photo <span aria-hidden="true">↶</span>';
+        notice('');
+      } else {
+        viewer.setAttribute('src','assets/made-by-kirat-3d.glb');
+      }
+    } catch (error) {
+      showPhoto(); notice('3D viewer unavailable. The original hero image remains visible.');
+    }
+  }
+  button.addEventListener('click',show3D);
+})();
+</script>
+
 </body>
 </html>
