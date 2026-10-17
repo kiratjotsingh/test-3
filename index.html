@@ -1,8 +1,8 @@
 <!doctype html>
 <!--
   made by Kirat / Standalone creative-studio website
-  All CSS, JavaScript, icons and illustrations are included in this file.
-  No build step, external libraries, fonts, analytics or image requests.
+  Static HTML/CSS/JavaScript with local image assets; no build step.
+  The optional 3D feature loads model-viewer externally only after a visitor clicks.
   EDIT: search for "CONTENT CONFIG" below and the clearly labelled HTML sections.
   Portfolio studies are fictional concepts, NOT claims of real client work.
   Contact prepares an email draft; it does NOT send or store submissions.
@@ -31,6 +31,17 @@
       } catch (_) {
         if (matchMedia('(prefers-reduced-motion: reduce)').matches) root.dataset.motion = 'off';
       }
+    })();
+  </script>
+  <script>
+    /* The first-visit intro is optional and never runs for reduced-motion visitors. */
+    (() => {
+      try {
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (!prefersReducedMotion && document.documentElement.dataset.motion !== 'off' && sessionStorage.getItem('mbk-intro-seen') !== 'yes') {
+          document.documentElement.classList.add('mbk-intro-pending');
+        }
+      } catch (_) { /* Restricted storage: show the website without an intro. */ }
     })();
   </script>
   <style>
@@ -902,6 +913,165 @@
 }
 @media(prefers-reduced-motion:reduce) { .hero-model,.hero-3d-button { transition:none; } }
 
+
+/* ===== made by Kirat | custom opening screen ===== */
+.mbk-intro {
+  display:none; position:fixed; inset:0; z-index:5000;
+  background:#F4F0E8; color:#191919;
+  font-family:var(--font);
+  isolation:isolate;
+  opacity:1; transition:opacity .36s cubic-bezier(.22,1,.36,1),visibility .36s;
+}
+html.mbk-intro-pending .mbk-intro,
+html.mbk-intro-leaving .mbk-intro { display:block; }
+html.mbk-intro-pending body { overflow:hidden; }
+html.mbk-intro-leaving .mbk-intro { opacity:0; visibility:hidden; pointer-events:none; }
+.mbk-intro::before {
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(139deg,transparent 51%,rgba(168,71,45,.045) 51.06%,transparent 51.15%),
+             radial-gradient(ellipse at 92% 4%,rgba(180,148,119,.10),transparent 45%);
+  pointer-events:none;
+}
+.mbk-intro__inner {
+  width:min(1120px,calc(100% - 100px)); height:100%; min-height:100dvh; margin:auto;
+  display:grid; grid-template-rows:auto minmax(0,1fr) auto;
+  padding:clamp(28px,5vh,56px) 0; position:relative;
+}
+.mbk-intro__top {
+  display:flex; justify-content:space-between; gap:20px;
+  font:600 10px/1.5 var(--mono); text-transform:uppercase;
+  letter-spacing:.14em; color:#7B7167;
+}
+.mbk-intro__center { display:flex; align-items:center; gap:clamp(28px,6vw,80px); }
+.mbk-intro__mark {
+  width:clamp(118px,17vw,204px); aspect-ratio:1; flex:0 0 auto;
+  display:grid; place-items:center;
+  border:1px solid rgba(25,25,25,.08); border-radius:25px;
+  background:#E9E2D8; box-shadow:0 24px 70px -50px rgba(25,25,25,.45);
+}
+.mbk-intro__mark img { width:83%; height:83%; object-fit:contain; }
+.mbk-intro__eyebrow {
+  font:600 10px/1.5 var(--mono); letter-spacing:.17em;
+  text-transform:uppercase; color:#A8472D; margin:0 0 16px;
+}
+.mbk-intro__name {
+  font-size:clamp(42px,5.8vw,87px); font-weight:650;
+  line-height:1.02; letter-spacing:-.065em;
+}
+.mbk-intro__idea {
+  font-size:clamp(28px,3.8vw,56px); font-weight:420;
+  line-height:1.08; letter-spacing:-.06em; margin-top:8px;
+}
+.mbk-intro__tagline { font-size:clamp(13px,1.2vw,16px); line-height:1.55; margin-top:18px; color:#635E57; }
+.mbk-intro__bottom { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:36px; }
+.mbk-intro__label {
+  display:flex; justify-content:space-between; gap:18px;
+  text-transform:uppercase; letter-spacing:.14em;
+  color:#7B7167; font:600 10px/1.4 var(--mono);
+}
+.mbk-intro__track {
+  position:relative; height:2px; overflow:hidden; margin-top:14px;
+  background:#D9D0C4;
+}
+.mbk-intro__track::after {
+  content:""; position:absolute; top:0; bottom:0; width:34%;
+  background:#A8472D; animation:mbk-intro-travel 1.25s ease-in-out infinite;
+}
+@keyframes mbk-intro-travel {
+  0% { transform:translateX(-110%); }
+  100% { transform:translateX(400%); }
+}
+.mbk-intro__skip {
+  background:transparent; border:0; border-bottom:1px solid rgba(25,25,25,.32);
+  color:#191919; padding:10px 0 9px; border-radius:0;
+  white-space:nowrap; font:650 12px/1.25 var(--font);
+}
+.mbk-intro__skip:hover { border-bottom-color:#A8472D; color:#A8472D; }
+.mbk-intro__skip:focus-visible { outline:2px solid #A8472D; outline-offset:5px; }
+@media(max-width:720px) {
+  .mbk-intro__inner { width:calc(100% - 48px); padding:26px 0 33px; }
+  .mbk-intro__top { font-size:9px; }
+  .mbk-intro__center { flex-direction:column; align-items:flex-start; justify-content:center; gap:30px; }
+  .mbk-intro__mark { width:116px; border-radius:18px; }
+  .mbk-intro__eyebrow { margin-bottom:12px; }
+  .mbk-intro__name { font-size:clamp(38px,9vw,56px); }
+  .mbk-intro__idea { font-size:clamp(29px,7.5vw,43px); }
+  .mbk-intro__tagline { margin-top:12px; }
+  .mbk-intro__bottom { grid-template-columns:1fr; align-items:start; gap:18px; }
+  .mbk-intro__skip { justify-self:start; }
+}
+@media(max-width:390px) {
+  .mbk-intro__top { flex-wrap:wrap; gap:6px 12px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .mbk-intro { display:none!important; }
+  .mbk-intro__track::after { animation:none; width:100%; }
+}
+
+/* ===== On-demand 3D model loading UI (real progress, not a simulated percentage) ===== */
+.hero-stage.is-loading .hero-3d-button { visibility:hidden; }
+.hero-3d-loading {
+  position:absolute; inset:0; z-index:4; display:flex; align-items:center; justify-content:center;
+  padding:clamp(22px,4vw,50px);
+  background:rgba(244,240,232,.95); color:#191919;
+  backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px);
+}
+.hero-3d-loading[hidden] { display:none!important; }
+.hero-3d-loading__card { width:min(100%,370px); text-align:left; }
+.hero-3d-loading__eyebrow {
+  font:600 10px/1.5 var(--mono); text-transform:uppercase; letter-spacing:.16em;
+  color:#A8472D;
+}
+.hero-3d-loading__symbol {
+  width:77px; height:77px; display:grid; place-items:center;
+  background:#E9E2D8; border:1px solid rgba(25,25,25,.07); border-radius:15px;
+  margin-bottom:24px;
+}
+.hero-stage .hero-3d-loading__symbol img { position:static; inset:auto; max-width:100%; width:79%; height:79%; object-fit:contain; filter:none; }
+.hero-3d-loading__heading {
+  font:620 clamp(25px,2.6vw,35px)/1.12 var(--font); letter-spacing:-.055em;
+  margin:14px 0 10px;
+}
+.hero-3d-loading__sub { font:400 13px/1.55 var(--font); color:#635E57; margin-bottom:30px; }
+.hero-3d-loading__row {
+  display:flex; justify-content:space-between; gap:12px;
+  font:600 10px/1.5 var(--mono); letter-spacing:.035em;
+  color:#655C52; margin-bottom:10px;
+}
+.hero-3d-loading__track {
+  width:100%; height:3px; overflow:hidden; background:#D5CAC0;
+  position:relative;
+}
+.hero-3d-loading__fill {
+  position:absolute; inset:0 auto 0 0; width:0%; background:#A8472D;
+  transition:width .16s ease-out;
+}
+.hero-3d-loading__track:not([aria-valuenow]) .hero-3d-loading__fill {
+  width:33%; animation:mbk-model-indeterminate 1.3s ease-in-out infinite;
+}
+@keyframes mbk-model-indeterminate {
+  0% { transform:translateX(-110%); }
+  100% { transform:translateX(400%); }
+}
+.hero-3d-loading__cancel {
+  margin-top:30px; min-height:44px; padding:11px 16px; border-radius:9px;
+  background:transparent; border:1px solid rgba(25,25,25,.2);
+  color:#191919; font:600 12px/1.4 var(--font);
+}
+.hero-3d-loading__cancel:hover { border-color:#A8472D; color:#A8472D; }
+.hero-3d-loading__cancel:focus-visible { outline:2px solid #A8472D; outline-offset:3px; }
+@media(max-width:680px) {
+  .hero-3d-loading { padding:18px 22px; }
+  .hero-3d-loading__symbol { width:59px; height:59px; margin-bottom:13px; border-radius:11px; }
+  .hero-3d-loading__heading { font-size:25px; margin-top:8px; }
+  .hero-3d-loading__sub { margin-bottom:16px; font-size:12px; }
+  .hero-3d-loading__cancel { margin-top:20px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .hero-3d-loading__fill { transition:none; }
+  .hero-3d-loading__track:not([aria-valuenow]) .hero-3d-loading__fill { animation:none; width:100%; opacity:.5; }
+}
+
 </style>
   <noscript><style>.theme-toggle,.menu-toggle,.filters,.motion-toggle{display:none!important}.nav-links{display:flex!important;position:static!important;flex-direction:row!important;flex-wrap:wrap!important;padding:0!important;box-shadow:none!important}.nav{flex-wrap:wrap;padding-block:14px}.project-button{cursor:default}.sculpture,.float-card{animation:none!important}
 
@@ -1105,6 +1275,27 @@
 </style></noscript>
 </head>
 <body>
+<div class="mbk-intro" id="mbk-intro" aria-label="Opening made by Kirat">
+  <div class="mbk-intro__inner">
+    <div class="mbk-intro__top"><span>01 / The studio</span><span>Independent &amp; multidisciplinary</span></div>
+    <div class="mbk-intro__center">
+      <div class="mbk-intro__mark"><img src="assets/made-by-kirat-symbol.png" width="149" height="151" alt=""></div>
+      <div class="mbk-intro__identity">
+        <p class="mbk-intro__eyebrow">A creative practice in motion</p>
+        <p class="mbk-intro__name">made by Kirat</p>
+        <p class="mbk-intro__idea">Ideas take shape.</p>
+        <p class="mbk-intro__tagline">Different perspectives. Thoughtfully made.</p>
+      </div>
+    </div>
+    <div class="mbk-intro__bottom">
+      <div>
+        <div class="mbk-intro__label"><span>Setting the scene</span><span>Thoughtfully made</span></div>
+        <div class="mbk-intro__track" aria-hidden="true"></div>
+      </div>
+      <button type="button" class="mbk-intro__skip" id="mbk-intro-skip">Enter studio <span aria-hidden="true">↗</span></button>
+    </div>
+  </div>
+</div>
 <a href="#main" class="skip-link">Skip to content</a>
 <noscript><div class="no-js-note">You're viewing the simplified site. For enquiries, use the email link in the contact section.</div></noscript>
 <header class="site-header">
@@ -1139,6 +1330,17 @@
         </div>
         <div class="hero-stage">
           <img class="hero-poster-image" src="assets/hero-sculpture.jpg" alt="Sculptural black made by Kirat symbol on a warm stone plinth" fetchpriority="high" decoding="async">
+          <div class="hero-3d-loading" id="hero-3d-loading" hidden aria-label="Loading the interactive 3D logo">
+            <div class="hero-3d-loading__card">
+              <div class="hero-3d-loading__symbol"><img src="assets/made-by-kirat-symbol.png" width="149" height="151" alt=""></div>
+              <div class="hero-3d-loading__eyebrow">made by Kirat / Interactive view</div>
+              <h3 class="hero-3d-loading__heading">Giving ideas dimension.</h3>
+              <p class="hero-3d-loading__sub">Preparing the original 3D mark. The image version is always available.</p>
+              <div class="hero-3d-loading__row"><span id="hero-3d-loading-label" role="status" aria-live="polite">Opening the viewer…</span><span id="hero-3d-loading-percent" aria-hidden="true">—</span></div>
+              <div class="hero-3d-loading__track" id="hero-3d-loading-track" role="progressbar" aria-label="3D model download and preparation" aria-valuemin="0" aria-valuemax="100"><span class="hero-3d-loading__fill" id="hero-3d-loading-fill"></span></div>
+              <button class="hero-3d-loading__cancel" id="hero-3d-cancel" type="button">Keep the photo <span aria-hidden="true">↗</span></button>
+            </div>
+          </div>
           <div class="hero-3d-status" id="hero-3d-status" aria-live="polite" hidden></div>
           <button class="hero-3d-button" id="hero-3d-button" type="button" aria-label="Explore the made by Kirat logo as an interactive 3D model">Explore in 3D <span aria-hidden="true">↗</span></button>
         </div>
@@ -1450,87 +1652,192 @@ const response = await fetch('https://contact-api.kiratjotsingh094.workers.dev/a
 </script>
 
 <script>
-/* Optional 3D interaction: no 27 MB model request until visitors opt in. */
+/* User-initiated 3D: the original ~21 MB GLB only downloads after a click.
+   The branded loader is indeterminate while the viewer library loads, then
+   displays percentages from model-viewer's actual progress events. */
 (() => {
   const button = document.getElementById('hero-3d-button');
   const stage = document.querySelector('.hero-stage');
   const status = document.getElementById('hero-3d-status');
-  if (!button || !stage || !status) return;
+  const overlay = document.getElementById('hero-3d-loading');
+  const cancel = document.getElementById('hero-3d-cancel');
+  const loadingLabel = document.getElementById('hero-3d-loading-label');
+  const loadingPercent = document.getElementById('hero-3d-loading-percent');
+  const progressTrack = document.getElementById('hero-3d-loading-track');
+  const progressFill = document.getElementById('hero-3d-loading-fill');
+  if (!button || !stage || !status || !overlay || !cancel || !progressTrack) return;
   const lib = 'https://ajax.googleapis.com/ajax/libs/model-viewer/4.4.0/model-viewer.min.js';
-  let state = 'photo', viewer = null, libraryTask = null;
-  function notice(message) { status.hidden = !message; status.textContent = message || ''; }
-  function showPhoto() {
+  let state = 'photo';
+  let viewer = null;
+  let libraryTask = null;
+  let requestId = 0;
+  let watchdog;
+  function notice(message) {
+    status.hidden = !message;
+    status.textContent = message || '';
+  }
+  function labelButton(active3D) {
+    button.innerHTML = active3D
+      ? 'Back to photo <span aria-hidden="true">↶</span>'
+      : 'Explore in 3D <span aria-hidden="true">↗</span>';
+    button.setAttribute('aria-label', active3D
+      ? 'Return to the original sculptural hero photograph'
+      : 'Explore the actual made by Kirat logo as a 3D model, approximately 21 MB');
+  }
+  function showLoader() {
+    overlay.hidden = false;
+    stage.classList.add('is-loading');
+    stage.setAttribute('aria-busy','true');
+    button.disabled = true;
+    loadingLabel.textContent = 'Opening the viewer…';
+    loadingPercent.textContent = '—';
+    progressTrack.removeAttribute('aria-valuenow');
+    progressFill.style.width = '';
+    notice('');
+  }
+  function setProgress(value) {
+    if (state !== 'loading' || !Number.isFinite(value)) return;
+    const pct = Math.max(0,Math.min(100,Math.round(value * 100)));
+    loadingLabel.textContent = 'Loading the 3D model…';
+    loadingPercent.textContent = pct + '%';
+    progressTrack.setAttribute('aria-valuenow',String(pct));
+    progressFill.style.width = pct+'%';
+  }
+  function hideLoader() {
+    clearTimeout(watchdog);
+    stage.classList.remove('is-loading');
+    stage.setAttribute('aria-busy','false');
+    overlay.hidden = true;
+    button.disabled = false;
+  }
+  function showPhoto(message = '') {
+    const wasLoading = state === 'loading';
+    requestId++;
     state = 'photo';
     stage.classList.remove('is-3d');
-    button.disabled = false;
-    button.innerHTML = 'Explore in 3D <span aria-hidden="true">↗</span>';
-    button.setAttribute('aria-label','Explore the made by Kirat logo as an interactive 3D model');
-    notice('');
-    if (viewer) viewer.pause?.();
+    hideLoader();
+    labelButton(false);
+    if (wasLoading && viewer) {
+      // Cancel an in-progress transfer. A finished model is kept in memory for quick reopening.
+      viewer.removeAttribute('src');
+      viewer.remove();
+      viewer = null;
+    } else if (viewer) viewer.pause?.();
+    notice(message);
   }
   function getLibrary() {
     if (customElements.get('model-viewer')) return Promise.resolve();
     if (libraryTask) return libraryTask;
-    libraryTask = Promise.race([new Promise((resolve,reject) => {
-      const script = document.createElement('script');
-      script.type = 'module'; script.src = lib;
-      script.onerror = () => reject(new Error('3D viewer library could not load'));
-      script.onload = () => customElements.whenDefined('model-viewer').then(resolve,reject);
-      document.head.appendChild(script);
-    }), new Promise((_,reject) => setTimeout(() => reject(new Error('3D viewer took too long to load')),15000))]);
+    libraryTask = Promise.race([
+      new Promise((resolve,reject) => {
+        const script = document.createElement('script');
+        script.type = 'module'; script.src = lib;
+        script.onerror = () => reject(new Error('3D viewer library unavailable'));
+        script.onload = () => customElements.whenDefined('model-viewer').then(resolve,reject);
+        document.head.appendChild(script);
+      }),
+      new Promise((_,reject) => setTimeout(() => reject(new Error('3D viewer library timed out')),15000))
+    ]).catch(error => { libraryTask = null; throw error; });
     return libraryTask;
+  }
+  function openLoadedModel() {
+    hideLoader();
+    stage.classList.add('is-3d');
+    state = '3d';
+    labelButton(true);
+    notice('Drag to explore the actual 3D logo.');
+    setTimeout(() => { if (state === '3d') notice(''); },4500);
   }
   async function show3D() {
     if (state === 'loading') return;
     if (state === '3d') { showPhoto(); return; }
-    state = 'loading'; button.disabled = true; notice('Preparing interactive view…');
+    const id = ++requestId;
+    state = 'loading';
+    showLoader();
+    watchdog = setTimeout(() => {
+      if (state === 'loading' && requestId === id) showPhoto('3D took too long to load. You can try again.');
+    },35000);
     try {
       await getLibrary();
+      if (state !== 'loading' || requestId !== id) return;
+      if (viewer && viewer.loaded) { openLoadedModel(); return; }
       if (!viewer) {
-        viewer = document.createElement('model-viewer');
-        viewer.className = 'hero-model';
-        viewer.setAttribute('alt','Interactive 3D version of the finalized made by Kirat symbol');
-        viewer.setAttribute('camera-controls','');
-        viewer.setAttribute('touch-action','pan-y');
-        viewer.setAttribute('camera-orbit','0deg 90deg 3.45m');
-        viewer.setAttribute('camera-target','0m 0m 0m');
-        viewer.setAttribute('field-of-view','30deg');
-        viewer.setAttribute('min-camera-orbit','-35deg 58deg auto');
-        viewer.setAttribute('max-camera-orbit','35deg 122deg auto');
-        viewer.setAttribute('disable-zoom','');
-        viewer.setAttribute('shadow-intensity','0.75');
-        viewer.setAttribute('exposure','1.25');
-        viewer.setAttribute('environment-image','neutral');
-        viewer.addEventListener('progress', event => {
-          if (state === 'loading') notice('Loading 3D model… '+Math.round((event.detail?.totalProgress || 0)*100)+'%');
+        const model = document.createElement('model-viewer');
+        viewer = model;
+        model.className = 'hero-model';
+        model.setAttribute('alt','Interactive 3D version of the finalized made by Kirat symbol');
+        model.setAttribute('camera-controls','');
+        model.setAttribute('touch-action','pan-y');
+        model.setAttribute('camera-orbit','0deg 90deg 3.45m');
+        model.setAttribute('camera-target','0m 0m 0m');
+        model.setAttribute('field-of-view','30deg');
+        model.setAttribute('min-camera-orbit','-35deg 58deg auto');
+        model.setAttribute('max-camera-orbit','35deg 122deg auto');
+        model.setAttribute('disable-zoom','');
+        model.setAttribute('shadow-intensity','0.75');
+        model.setAttribute('exposure','1.25');
+        model.setAttribute('environment-image','neutral');
+        model.addEventListener('progress', event => {
+          if (viewer === model && state === 'loading') setProgress(event.detail?.totalProgress);
         });
-        viewer.addEventListener('error', () => {
-          showPhoto(); notice('3D could not load. The original hero image is still available.');
+        model.addEventListener('error', () => {
+          if (viewer === model && state === 'loading') showPhoto('The 3D model could not load. The photo is still available.');
         });
-        viewer.addEventListener('load', () => {
-          // The mesh remains exactly as supplied; only the displayed finish uses brand ink.
-          try { viewer.model?.materials?.forEach(m => m.pbrMetallicRoughness?.setBaseColorFactor([0.075,0.075,0.075,1])); }
-          catch (_) { /* use model's included material as fallback */ }
-          stage.classList.add('is-3d'); state = '3d'; button.disabled = false;
-          button.innerHTML = 'Back to photo <span aria-hidden="true">↶</span>';
-          button.setAttribute('aria-label','Return to the original sculptural hero photograph');
-          notice('Drag to inspect the actual 3D logo.');
-          setTimeout(() => { if (state === '3d') notice(''); },4500);
+        model.addEventListener('load', () => {
+          if (viewer !== model || state !== 'loading') return;
+          // The geometry remains unchanged. Only a brand-ink surface finish is applied.
+          try { model.model?.materials?.forEach(material => material.pbrMetallicRoughness?.setBaseColorFactor([.075,.075,.075,1])); }
+          catch (_) { /* Preserve the material supplied inside the GLB if unavailable. */ }
+          openLoadedModel();
         });
-        stage.appendChild(viewer);
+        stage.appendChild(model);
       }
-      if (viewer.loaded) {
-        stage.classList.add('is-3d'); state = '3d'; button.disabled = false;
-        button.innerHTML = 'Back to photo <span aria-hidden="true">↶</span>';
-        notice('');
-      } else {
-        viewer.setAttribute('src','assets/made-by-kirat-3d.glb');
-      }
-    } catch (error) {
-      showPhoto(); notice('3D viewer unavailable. The original hero image remains visible.');
+      loadingLabel.textContent = 'Loading the 3D model…';
+      viewer.setAttribute('src','assets/made-by-kirat-3d.glb');
+    } catch (_) {
+      if (state === 'loading' && requestId === id) showPhoto('3D is currently unavailable. The original hero photograph remains visible.');
     }
   }
+  cancel.addEventListener('click', () => { showPhoto(); button.focus({preventScroll:true}); });
   button.addEventListener('click',show3D);
+})();
+</script>
+
+<script>
+/* A brief introduction on the first visit only. It never delays the 3D model or blocks indefinitely. */
+(() => {
+  const root = document.documentElement;
+  const overlay = document.getElementById('mbk-intro');
+  if (!overlay) return;
+  if (!root.classList.contains('mbk-intro-pending')) { overlay.hidden = true; return; }
+  let dismissed = false;
+  let readyScheduled = false;
+  let cleanupTimer;
+  function close() {
+    if (dismissed) return;
+    dismissed = true;
+    root.classList.remove('mbk-intro-pending');
+    root.classList.add('mbk-intro-leaving');
+    try { sessionStorage.setItem('mbk-intro-seen','yes'); } catch (_) {}
+    cleanupTimer = setTimeout(() => {
+      overlay.hidden = true;
+      root.classList.remove('mbk-intro-leaving');
+    },380);
+  }
+  function soon() {
+    if (readyScheduled) return;
+    readyScheduled = true;
+    setTimeout(close,620);
+  }
+  document.getElementById('mbk-intro-skip')?.addEventListener('click',close);
+  const poster = document.querySelector('.hero-poster-image');
+  if (!poster || poster.complete) soon();
+  else {
+    poster.addEventListener('load',soon,{once:true});
+    poster.addEventListener('error',soon,{once:true});
+  }
+  setTimeout(close,1700);
+  window.addEventListener('pageshow',event => { if (event.persisted) close(); },{once:true});
 })();
 </script>
 
